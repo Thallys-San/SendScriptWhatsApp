@@ -7,27 +7,27 @@ async function enviarScript(scriptText){
     if(!textarea) throw new Error("Não há uma conversa aberta");
 
     for(const line of lines){
-        console.log(line);
+        console.log("Enviando:", line);
 
         textarea.focus();
 
-        // mantém seu método original
-        document.execCommand('insertText', false, line);
-        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+        // Inserir texto
+        textarea.textContent = line;
+        textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
 
-        setTimeout(() => {
-            // seletor atualizado (com fallback dos antigos)
-            const btn = 
-                main.querySelector(`[data-icon="wds-ic-send-filled"]`) ||
-                main.querySelector(`[data-testid="send"]`) ||
-                main.querySelector(`[data-icon="send"]`);
+        // Aguardar um pouco antes de clicar no botão (WhatsApp às vezes demora pra montar a mensagem)
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-            if (btn) btn.click();
-        }, 100);
+        // Enviar mensagem
+        const btn = 
+            main.querySelector(`[data-icon="wds-ic-send-filled"]`) ||
+            main.querySelector(`[data-testid="send"]`) ||
+            main.querySelector(`[data-icon="send"]`);
 
-        if(lines.indexOf(line) !== lines.length - 1){
-            await new Promise(resolve => setTimeout(resolve, 250));
-        }
+        if (btn) btn.click();
+
+        // Delay maior entre envios para evitar congestionamento
+        await new Promise(resolve => setTimeout(resolve, 1200));
     }
 
     return lines.length;
